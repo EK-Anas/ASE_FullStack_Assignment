@@ -38,7 +38,7 @@ public class UserService {
 
         User user = usersRepo
                 .findById(userId)
-                .orElseThrow();
+                .orElseThrow(() -> new ResourceNotFoundException("invalid user id"));
 
         user = userFactory.updateUser(user, userDto);
 

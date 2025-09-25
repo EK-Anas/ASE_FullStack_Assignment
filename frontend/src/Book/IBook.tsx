@@ -8,4 +8,5 @@ export interface Book {
   copiesAvailable: number;
   fileUrl: string;
   fileSizeMb: number;
+  ebook: boolean;
 }

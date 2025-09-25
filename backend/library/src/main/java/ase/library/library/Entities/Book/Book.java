@@ -1,4 +1,4 @@
-package ase.library.library.Entities;
+package ase.library.library.Entities.Book;
 
 import ase.library.library.Entities.Enums.BookCat;
 import jakarta.persistence.Column;

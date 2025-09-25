@@ -1,13 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import { getBook } from "./BookServce";
+import { addBook, getBook, updateBook } from "./BookServce";
 import type { Book } from "./IBook";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import axios from "axios";
 
 const BookForm = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const parsedId = id ? Number(id) : NaN;
   const isValidId = Number.isInteger(parsedId) && parsedId > 0;
@@ -18,7 +18,21 @@ const BookForm = () => {
     enabled: isValidId,
   });
 
-  const [isEbook, setIsEbook] = useState<boolean | null>(null);
+  const addMutation = useMutation({
+    mutationFn: (book: Book) => addBook(book),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["books", "book", parsedId] });
+      navigate("/books");
+    },
+  });
+  const updateMutation = useMutation({
+    mutationFn: (book: Book) => updateBook(book),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["books", "book", parsedId] });
+      navigate("/books");
+    },
+  });
+
   const [bookFormData, setBookFormData] = useState<Book>({
     id: 0,
     title: "",
@@ -29,12 +43,16 @@ const BookForm = () => {
     copiesAvailable: 0,
     fileUrl: "",
     fileSizeMb: 0,
+    ebook: false,
   });
 
   useEffect(() => {
     if (!data) return;
     setBookFormData(data);
-    setIsEbook(data.fileUrl ? true : false);
+    setBookFormData((prev) => ({
+      ...prev,
+      ebook: data.fileUrl ? true : false,
+    }));
   }, [data]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -49,20 +67,8 @@ const BookForm = () => {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!isValidId) {
-      let url = `http://localhost:8080/book/printed`;
-      if (isEbook) url = `http://localhost:8080/book/e`;
-      axios.post(url, bookFormData).then(() => {
-        navigate("/books");
-      });
-    } else {
-      let url = `http://localhost:8080/book/shelf/${id}`;
-      if (isEbook) url = `http://localhost:8080/book/e/${id}`;
-
-      axios.put(url, bookFormData).then(() => {
-        navigate("/books");
-      });
-    }
+    if (isValidId) updateMutation.mutate(bookFormData);
+    else addMutation.mutate(bookFormData);
   };
 
   const handleSelection = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -108,7 +114,7 @@ const BookForm = () => {
           onChange={handleChange}
         />
         <select
-          name="categor"
+          name="category"
           id="category"
           className="border border-gray-300 rounded px-4 py-2 w-full bg-black"
           value={bookFormData.category}
@@ -127,9 +133,11 @@ const BookForm = () => {
             <input
               type="radio"
               name="bookType"
-              value="ebook"
-              checked={isEbook === true}
-              onChange={() => setIsEbook(true)}
+              value="isEbook"
+              checked={bookFormData.ebook === true}
+              onChange={() =>
+                setBookFormData((prev) => ({ ...prev, ebook: true }))
+              }
             />
             Ebook
           </label>
@@ -138,34 +146,41 @@ const BookForm = () => {
               type="radio"
               name="bookType"
               value="phys"
-              checked={isEbook === false}
-              onChange={() => setIsEbook(false)}
+              checked={bookFormData.ebook === false}
+              onChange={() =>
+                setBookFormData((prev) => ({ ...prev, ebook: false }))
+              }
             />
             Physical book
           </label>
         </div>
-
-        {isEbook != null && (
+        {bookFormData.ebook != null && (
           <>
             <input
               type="text"
-              placeholder={isEbook ? "fileUrl" : "shelfLocation"}
-              id={isEbook ? "fileUrl" : "shelfLocation"}
-              name={isEbook ? "fileUrl" : "shelfLocation"}
+              placeholder={bookFormData.ebook ? "fileUrl" : "shelfLocation"}
+              id={bookFormData.ebook ? "fileUrl" : "shelfLocation"}
+              name={bookFormData.ebook ? "fileUrl" : "shelfLocation"}
               className="border border-gray-300 rounded px-4 py-2 w-full bg-black"
               value={
-                isEbook ? bookFormData.fileUrl : bookFormData.shelfLocation
+                bookFormData.ebook
+                  ? bookFormData.fileUrl
+                  : bookFormData.shelfLocation
               }
               onChange={handleChange}
             />
             <input
               type="text"
-              placeholder={isEbook ? "fileSizeMb" : "copiesAvailable"}
-              id={isEbook ? "fileSizeMb" : "copiesAvailable"}
-              name={isEbook ? "fileSizeMb" : "copiesAvailable"}
+              placeholder={
+                bookFormData.ebook ? "fileSizeMb" : "copiesAvailable"
+              }
+              id={bookFormData.ebook ? "fileSizeMb" : "copiesAvailable"}
+              name={bookFormData.ebook ? "fileSizeMb" : "copiesAvailable"}
               className="border border-gray-300 rounded px-4 py-2 w-full bg-black"
               value={
-                isEbook ? bookFormData.fileSizeMb : bookFormData.copiesAvailable
+                bookFormData.ebook
+                  ? bookFormData.fileSizeMb
+                  : bookFormData.copiesAvailable
               }
               onChange={handleChange}
             />

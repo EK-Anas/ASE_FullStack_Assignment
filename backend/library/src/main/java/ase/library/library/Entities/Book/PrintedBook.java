@@ -1,4 +1,4 @@
-package ase.library.library.Entities;
+package ase.library.library.Entities.Book;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -9,14 +9,13 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 @Entity
-@Table(name = "ebooks")
+@Table(name = "printedbooks")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class EBook extends Book {
-
-    private String fileUrl;
-    private long fileSizeMb;
+public class PrintedBook extends Book {
+    private String shelfLocation;
+    private int copiesAvailable;
 }

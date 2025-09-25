@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import ase.library.library.Entities.BorrowRecord;
-import ase.library.library.Entities.PrintedBook;
+import ase.library.library.Entities.Book.PrintedBook;
 import ase.library.library.Repos.BookRepo;
 import ase.library.library.Repos.BorrowRepo;
 import lombok.RequiredArgsConstructor;
