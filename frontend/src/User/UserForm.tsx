@@ -1,9 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getUser } from "./UserService";
 import type { User } from "./IUser";
+import { addUser, getUser, updateUser } from "./UserService";
 
 const UserForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +14,25 @@ const UserForm = () => {
     queryKey: ["user", parsedId],
     queryFn: () => getUser(parsedId),
     enabled: isValidId,
+  });
+
+  const queryClient = useQueryClient();
+
+  const addMutation = useMutation({
+    mutationFn: (payload: User) => addUser(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      navigate("/users");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (payload: User) => updateUser(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["user", parsedId] });
+      navigate("/users");
+    },
   });
 
   const [userFormData, setUserFormData] = useState<User>({
@@ -44,21 +62,8 @@ const UserForm = () => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    let payload: any = { ...userFormData };
-    payload.otherInfo =
-      userFormData.role === "STUDENT"
-        ? userFormData.course
-        : userFormData.department;
-
-    if (isValidId) {
-      axios
-        .put("http://localhost:8080/user", payload)
-        .then(() => navigate("/users"));
-    } else {
-      axios
-        .post("http://localhost:8080/user", payload)
-        .then(() => navigate("/users"));
-    }
+    if (isValidId) updateMutation.mutate(userFormData);
+    else addMutation.mutate(userFormData);
   };
 
   const handleSelection = (event: ChangeEvent<HTMLSelectElement>) => {
