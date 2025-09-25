@@ -27,12 +27,12 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping()
+    @GetMapping
     public List<UserDto> getUsers() {
         return userService.getAllUsers();
     }
 
-    @PostMapping()
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void addUser(@Valid @RequestBody UserDto user) {
         userService.addUser(user);

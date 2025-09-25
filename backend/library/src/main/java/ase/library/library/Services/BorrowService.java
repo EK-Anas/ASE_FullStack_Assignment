@@ -6,7 +6,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import ase.library.library.Entities.BorrowRecord;
+import ase.library.library.Entities.Book.Book;
 import ase.library.library.Entities.Book.PrintedBook;
+import ase.library.library.Exception.BadRequestException;
+import ase.library.library.Exception.ResourceNotFoundException;
 import ase.library.library.Repos.BookRepo;
 import ase.library.library.Repos.BorrowRepo;
 import lombok.RequiredArgsConstructor;
@@ -23,51 +26,44 @@ public class BorrowService {
         return borrowRepo.findAllByOrderByIdDesc();
     }
 
-    public boolean BorrowBook(long bookId, long userId) {
+    @Transactional
+    public void borrowBook(long bookId, long userId) {
 
-        if (!bookRepo.existsById(bookId))
-            return false;
-
-        PrintedBook book = (PrintedBook) bookRepo
+        Book book = bookRepo
                 .findById(bookId)
-                .orElseThrow();
+                .orElseThrow(() -> new ResourceNotFoundException("invalid book id"));
 
-        if (book.getCopiesAvailable() == 0)
-            return false;
+        if (!(book instanceof PrintedBook))
+            throw new BadRequestException("only printed books can be borrowed");
+
+        PrintedBook printedBook = (PrintedBook) book;
+
+        if (printedBook.getCopiesAvailable() == 0)
+            throw new BadRequestException("no copies available");
 
         var borrow = new BorrowRecord()
                 .setBookId(bookId)
                 .setUserId(userId);
 
-        book.setCopiesAvailable(book.getCopiesAvailable() - 1);
-
-        bookRepo.save(book);
+        printedBook.setCopiesAvailable(printedBook.getCopiesAvailable() - 1);
         borrowRepo.save(borrow);
-        return true;
     }
 
     @Transactional
-    public boolean ReturnBook(long burrowId, long userId) {
+    public void returnBook(long borrowId, long userId) {
 
         BorrowRecord record = borrowRepo
-                .findById(burrowId)
-                .orElseThrow();
+                .findById(borrowId)
+                .orElseThrow(() -> new ResourceNotFoundException("invalid borrow id"));
 
-        if (!borrowRepo.existsByBookIdAndUserIdAndReturnDateIsNull(record.getBookId(), userId))
-            return false;
+        if (record.getReturnDate() != null)
+            throw new BadRequestException("book already returned");
 
         PrintedBook book = (PrintedBook) bookRepo
                 .findById(record.getBookId())
-                .orElseThrow();
+                .orElseThrow(() -> new ResourceNotFoundException("invalid book id"));
 
         book.setCopiesAvailable(book.getCopiesAvailable() + 1);
-
-        // var record = borrowRepo.findByBookIdAndUserIdAndReturnDateIsNull(bookId,
-        // userId);
-
         record.setReturnDate(LocalDate.now());
-
-        return true;
-
     }
 }

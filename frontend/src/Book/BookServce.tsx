@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../api/AxiosInstance";
 import type { Book } from "./IBook";
 
 const baseUrl: string = "http://localhost:8080/books";

@@ -21,7 +21,6 @@ public class UserService {
     public void addUser(UserDto userDto) {
 
         if (usersRepo.existsByEmailOrPhone(userDto.getEmail(), userDto.getPhone())) {
-
             throw new BadRequestException("Email & Phone must be unique");
         }
         UserFactory userFactory = UserFactoryHelper.getFactory(userDto.getRole());

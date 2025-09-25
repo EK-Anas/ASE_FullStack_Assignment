@@ -29,8 +29,7 @@ const UserForm = () => {
   const updateMutation = useMutation({
     mutationFn: (payload: User) => updateUser(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["user", parsedId] });
+      queryClient.invalidateQueries({ queryKey: ["users", "user", parsedId] });
       navigate("/users");
     },
   });

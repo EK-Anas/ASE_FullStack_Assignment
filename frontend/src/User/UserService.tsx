@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../api/AxiosInstance";
 import type { User } from "./IUser";
 
 const baseUrl: string = "http://localhost:8080/users";
