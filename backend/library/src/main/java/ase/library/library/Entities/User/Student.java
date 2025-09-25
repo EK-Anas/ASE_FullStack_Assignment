@@ -1,4 +1,4 @@
-package ase.library.library.Entities;
+package ase.library.library.Entities.User;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;

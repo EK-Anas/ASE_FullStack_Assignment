@@ -1,4 +1,4 @@
-package ase.library.library.Entities;
+package ase.library.library.Entities.User;
 
 import ase.library.library.Entities.Enums.UserRole;
 import jakarta.persistence.Column;
