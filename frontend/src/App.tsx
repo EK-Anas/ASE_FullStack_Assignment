@@ -7,6 +7,7 @@ import UserForm from "./User/UserForm";
 import BookList from "./Book/BookList";
 import BookForm from "./Book/BookForm";
 import BorrowList from "./Borrow/BorrowList";
+import { ToastContainer } from "react-toastify";
 
 const queryClient = new QueryClient();
 const App = () => {
@@ -20,6 +21,7 @@ const App = () => {
         <Route path="books/add-book/:id" element={<BookForm />}></Route>
         <Route path="/borrow" element={<BorrowList />}></Route>
       </Routes>
+      <ToastContainer autoClose={500} />
     </QueryClientProvider>
   );
 };

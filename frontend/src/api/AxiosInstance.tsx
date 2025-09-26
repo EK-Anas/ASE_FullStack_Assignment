@@ -5,8 +5,12 @@ const instance = axios.create();
 
 instance.interceptors.response.use(
   (response: AxiosResponse) => {
-    if (response.statusText === "OK") {
-      toast.success(response.data?.message || "Operation successful");
+    if (
+      response.status >= 200 &&
+      response.status < 300 &&
+      response.config.method != "get"
+    ) {
+      toast.success("Success");
     }
     return response;
   },
@@ -14,7 +18,8 @@ instance.interceptors.response.use(
     const response = error?.response;
     if (response) {
       if (response.status !== 200) {
-        // toast.error(response.data?. || `Request failed (${response.status})`);
+        const errorMsg: any = response.data;
+        toast.error(errorMsg, { autoClose: 3000 });
       }
     } else {
       toast.error(error.message || "Network error");
