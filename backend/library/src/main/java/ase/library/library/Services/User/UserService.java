@@ -8,6 +8,7 @@ import ase.library.library.Dtos.User.UserDto;
 import ase.library.library.Entities.User.User;
 import ase.library.library.Exception.BadRequestException;
 import ase.library.library.Exception.ResourceNotFoundException;
+import ase.library.library.Mapper.UserMapper;
 import ase.library.library.Repos.UserRepo;
 import lombok.RequiredArgsConstructor;
 
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 
     private final UserRepo usersRepo;
+    private final UserMapper userMapper;
 
     public void addUser(UserDto userDto) {
 
@@ -58,20 +60,15 @@ public class UserService {
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("invalid user id"));
 
-        var factory = UserFactoryHelper.getFactory(user.getRole());
-        return factory.toDto(user);
+        return userMapper.toDto(user);
     }
 
     public List<UserDto> getAllUsers() {
         var users = usersRepo
                 .findAllByOrderByIdDesc();
 
-        return users.stream()
-                .map(user -> {
-                    var factory = UserFactoryHelper.getFactory(user.getRole());
-                    return factory.toDto(user);
-                })
-                .toList();
+        return userMapper.toDtos(users);
+
     }
 
 }
